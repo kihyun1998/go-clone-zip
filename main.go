@@ -60,6 +60,8 @@ func main() {
 		}
 
 		projectName := fmt.Sprintf("%s_%s", parts[startIdx], parts[startIdx+1])
+		fmt.Printf("의존성 제목: go/%s\n", projectName) // 추가된 부분
+
 		// git clone을 위한 URL 생성
 		gitURL := input
 		if !strings.HasPrefix(gitURL, "https://") {
