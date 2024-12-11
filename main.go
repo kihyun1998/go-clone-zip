@@ -114,13 +114,45 @@ func main() {
 
 			fmt.Printf("Git repository 클론 중... (%s)\n", clonePath)
 
-			// Git clone 명령어 실행
-			cmd := exec.Command("git", "clone", gitURL, clonePath)
+			// Git clone with all branches
+			cmd := exec.Command("git", "clone", "--recursive", gitURL, clonePath)
 			if err := cmd.Run(); err != nil {
 				fmt.Println("Git clone 오류:", err)
 				continue
 			}
-			fmt.Println("Git clone 완료")
+
+			// Fetch all branches
+			cmd = exec.Command("git", "-C", clonePath, "remote", "update", "--prune")
+			if err := cmd.Run(); err != nil {
+				fmt.Println("Git fetch 오류:", err)
+				continue
+			}
+
+			// Checkout all remote branches locally
+			cmd = exec.Command("git", "-C", clonePath, "branch", "-r")
+			output, err := cmd.Output()
+			if err != nil {
+				fmt.Println("브랜치 목록 조회 오류:", err)
+				continue
+			}
+
+			// Create local branches
+			branches := strings.Split(string(output), "\n")
+			for _, branch := range branches {
+				branch = strings.TrimSpace(branch)
+				if branch == "" || strings.Contains(branch, "->") || strings.Contains(branch, "HEAD") {
+					continue
+				}
+
+				localBranch := strings.TrimPrefix(branch, "origin/")
+				checkoutCmd := exec.Command("git", "-C", clonePath, "checkout", "-b", localBranch, branch)
+				if err := checkoutCmd.Run(); err != nil {
+					fmt.Printf("Warning: 브랜치 '%s' 체크아웃 실패: %v\n", localBranch, err)
+					continue
+				}
+			}
+
+			fmt.Println("Git clone 및 모든 브랜치 체크아웃 완료")
 
 			// PowerShell을 사용하여 ZIP 파일 생성
 			fmt.Println("ZIP 파일 생성 중...")
