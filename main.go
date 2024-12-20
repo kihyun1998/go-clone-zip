@@ -115,9 +115,16 @@ func main() {
 			fmt.Printf("Git repository 클론 중... (%s)\n", clonePath)
 
 			// Git clone with all branches
+			// cmd := exec.Command("git", "clone", "--recursive", gitURL, clonePath)
+			// if err := cmd.Run(); err != nil {
+			// 	fmt.Println("Git clone 오류:", err)
+			// 	continue
+			// }
+
 			cmd := exec.Command("git", "clone", "--recursive", gitURL, clonePath)
-			if err := cmd.Run(); err != nil {
-				fmt.Println("Git clone 오류:", err)
+			msg, err := cmd.CombinedOutput() // Output()대신 CombinedOutput() 사용
+			if err != nil {
+				fmt.Printf("Git clone 오류: %v\n에러 메시지: %s\n", err, string(msg))
 				continue
 			}
 
